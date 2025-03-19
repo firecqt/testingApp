@@ -1,0 +1,65 @@
+.library-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; 
+    background-color: white;
+  }
+  
+  .library-header {
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    position: relative;
+  }
+  
+  .library-header .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .library-header .back-button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .file-item {
+    font-size: 30px; 
+    font-family: georgia; 
+    display: flex;
+    align-items: center;
+    margin-top: 40px; 
+    margin-left: 30px; 
+  }
+  
+  .file-item span {
+    font-size: 24px; 
+    margin-right: 10px; 
+  }
+  
+  .search-bar {
+    display: flex;
+    justify-content: center; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+  }
+  
+  .search-bar input {
+    width: 50%; 
+    padding: 8px;
+    margin-top: 10px; 
+    margin-bottom: 0px; 
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  
