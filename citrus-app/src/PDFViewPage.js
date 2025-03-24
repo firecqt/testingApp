@@ -1,10 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import fakefileImage from './images/fakefile.png'; // Always use this image
-=======
-import fakefileImage from './images/fakefile.png';
->>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
 import './FileViewPage.css';
 
 const PDFViewPage = () => {
@@ -88,11 +84,7 @@ const PDFViewPage = () => {
 
   const updateCanvasSize = () => {
     const img = new Image();
-<<<<<<< HEAD
     img.src = fakefileImage;  // Always use this image
-=======
-    img.src = fakefileImage;
->>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
     img.onload = () => {
       setCanvasSize({ width: img.width, height: img.height });
     };
@@ -110,10 +102,7 @@ const PDFViewPage = () => {
         <button onClick={() => setMode("none")}>None</button>
       </div>
       <div className="file-content">
-<<<<<<< HEAD
         <h2></h2> {/* Always display this file name */}
-=======
->>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
         <img
           src={fakefileImage}
           alt="Fake File"
