@@ -29,8 +29,8 @@ function App() {
           <Route path="/view" element={<ViewPage />} />
           <Route path="/otherView" element={<OtherView />} />
           <Route path="/processed-image" element={<ProcessedImage />} />
-          <Route path="/capture-preview" element={<CapturePreview />} /> {}
-          <Route path="/view-uploaded" element={<ViewUploadedFile />} />
+          <Route path="/capture-preview" element={<CapturePreview />} /> 
+          <Route path="/view-uploaded" element={<ViewUploadedFile />} /> {}
         </Routes>
       </div>
     </Router>

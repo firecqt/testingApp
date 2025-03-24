@@ -8,12 +8,11 @@ const CapturePreview = () => {
   const capturedImage = location.state?.capturedImage;
 
   const handleSave = () => {
-    // Passing both captured image and the flag to the LibraryPage
-    console.log("Navigating with captured image and isFromCamera flag...");
+    // Navigate to the LibraryPage with the captured image URL and the isFromCamera flag
     navigate('/library', { 
       state: { 
         imageUrl: capturedImage, 
-        isFromCamera: true // Flag indicating this image is from the camera
+        isFromCamera: true // Mark it as from the camera
       } 
     });
   };

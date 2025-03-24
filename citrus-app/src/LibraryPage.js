@@ -66,7 +66,7 @@ const LibraryPage = () => {
   const handleFileClick = (file) => {
     if (file.name === 'fakefile.png') {
       navigate('/view-pdf', { state: { fileName: file.name, filePath: file.path } });
-    } else { 
+    } else {
       if (file.isFromCamera) {
         navigate('/view', { state: { fileName: file.name, filePath: file.path } });
       } else {
@@ -85,48 +85,42 @@ const LibraryPage = () => {
     document.body.removeChild(link);
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const fileURL = URL.createObjectURL(file); // Create object URL for the file
+      setSelectedFile(fileURL);
+      setFileSource('explorer'); // Mark it as file explorer-uploaded
+      setNewFileName(file.name); // Automatically set the file name for input
+      setShowModal(true); // Trigger the name input modal
+    }
+  };
+
   return (
     <div className="library-page">
-      <div className="library-header">
-        <button className="back-button" onClick={() => navigate("/MainScreen")}>
-          Back
-        </button>
-      </div>
+      <button className="back-button" onClick={() => navigate("/MainScreen")}>Back</button>
 
-      {}
+      {/* File Upload via File Explorer */}
+      <input 
+        type="file" 
+        onChange={handleFileUpload} 
+        style={{ display: 'none' }} 
+        id="fileInput" 
+      />
+      <button className="upload-button" onClick={() => document.getElementById('fileInput').click()}>Upload File</button>
+
+      {/* Search Bar */}
       <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search files..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
+        <input type="text" placeholder="Search files..." value={searchQuery} onChange={handleSearchChange} />
       </div>
 
+      {/* File Display */}
       <div className="library-content">
-        {}
         {filteredFiles.length > 0 ? (
           filteredFiles.map((file) => (
-            <div key={file.name} className="file-item" onClick={() => handleFileClick(file.name)}>
-              <span role="img" aria-label="file">📄</span> {file.name}
-              <a
-                href="#"
-                onClick={(e) => handleDownloadClick(e, file.path, file.name)}
-                style={{
-                  marginLeft: '10px',
-                  padding: '3px 8px',
-                  backgroundColor: '#808080',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  position: 'absolute',
-                  right: '550px',
-                }}
-              >
-                Download
-              </a>
+            <div key={file.name} className="file-item">
+              <span role="button" onClick={() => handleFileClick(file)}>📄 {file.name}</span>
+              <a href="#" onClick={(e) => handleDownloadClick(e, file.path, file.name)} className="download-button">Download</a>
             </div>
           ))
         ) : (
