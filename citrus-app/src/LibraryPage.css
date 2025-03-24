@@ -3,21 +3,37 @@
     flex-direction: column;
     height: 100vh; 
     background-color: white;
+<<<<<<< HEAD
     position: relative; /* Make sure it's relative so absolute positioning inside it works */
 }
   
 .library-header {
+=======
+  }
+  
+  .library-header {
+>>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
     color: white;
     padding: 20px;
     text-align: center;
     font-size: 24px;
     font-weight: bold;
+<<<<<<< HEAD
 }
 
 .library-header .back-button {
     position: absolute;
     bottom: 20px; /* Move the button down */
     right: 20px;  /* Move the button to the right */
+=======
+    position: relative;
+  }
+  
+  .library-header .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+>>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
@@ -25,6 +41,7 @@
     font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
+<<<<<<< HEAD
 }
   
 .library-header .back-button:hover {
@@ -32,12 +49,22 @@
 }
 
 .file-item {
+=======
+  }
+  
+  .library-header .back-button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .file-item {
+>>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
     font-size: 30px; 
     font-family: georgia; 
     display: flex;
     align-items: center;
     margin-top: 40px; 
     margin-left: 30px; 
+<<<<<<< HEAD
 }
 
 .file-item span {
@@ -46,13 +73,29 @@
 }
 
 .search-bar {
+=======
+  }
+  
+  .file-item span {
+    font-size: 24px; 
+    margin-right: 10px; 
+  }
+  
+  .search-bar {
+>>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
     display: flex;
     justify-content: center; 
     margin-top: 20px; 
     margin-bottom: 20px; 
+<<<<<<< HEAD
 }
 
 .search-bar input {
+=======
+  }
+  
+  .search-bar input {
+>>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
     width: 50%; 
     padding: 8px;
     margin-top: 10px; 
@@ -60,6 +103,7 @@
     font-size: 16px;
     border-radius: 4px;
     border: 1px solid #ccc;
+<<<<<<< HEAD
 }
 
 .modal {
@@ -137,3 +181,8 @@
 .upload-button:active {
     background-color: #505050; /* Even darker when clicked */
 }
+=======
+  }
+  
+  
+>>>>>>> c45733dd313000f3fe3d64cd95a2146ae1487ff8
