@@ -66,7 +66,7 @@ const LibraryPage = () => {
   const handleFileClick = (file) => {
     if (file.name === 'fakefile.png') {
       navigate('/view-pdf', { state: { fileName: file.name, filePath: file.path } });
-    } else { 
+    } else {
       if (file.isFromCamera) {
         navigate('/view', { state: { fileName: file.name, filePath: file.path } });
       } else {

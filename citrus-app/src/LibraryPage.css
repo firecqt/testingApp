@@ -45,6 +45,13 @@
     margin-right: 10px; 
 }
 
+.no-files-message {
+  font-family: georgia; 
+  font-size: 28px; 
+  margin-top: 40px; 
+  margin-left: 30px;
+}
+
 .search-bar {
     display: flex;
     justify-content: center; 
