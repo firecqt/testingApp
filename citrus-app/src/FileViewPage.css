@@ -1,0 +1,74 @@
+.file-view-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: white;
+    position: relative;
+    padding: 20px;
+  }
+  
+  .file-content {
+    position: relative;
+    width: 100%;
+    height: 100%; 
+    overflow: hidden; 
+  }
+  
+  .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  
+  .back-button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    cursor: crosshair;
+  }
+  
+  .tools {
+    position: fixed;
+    bottom: 20px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+    padding-left: 14px;    
+    z-index: 10; 
+  }
+
+  .tools button {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    height: 40px; 
+    padding: -10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100px; 
+  }
+  
+  .tools button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .tools button:active {
+    background-color: rgba(0, 0, 0, 1);
+  }
+  

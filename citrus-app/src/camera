@@ -1,0 +1,49 @@
+import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; 
+import './CameraScreen.css';
+
+const CameraScreen = () => {
+  const videoRef = useRef(null);
+  const navigate = useNavigate(); 
+
+  useEffect(() => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
+  const handleCapture = () => {
+    navigate('/CameraPreview'); 
+  };
+
+  const handleCancel = () => {
+    navigate('/MainScreen'); 
+  };
+
+  return (
+    <div className="camera-screen">
+      <div className="camera-header">Camera</div>
+      <div className="camera-view">
+        <video
+          ref={videoRef}
+          className="camera-video"
+          autoPlay
+          playsInline
+        />
+      </div>
+      <button className="capture-button" onClick={handleCapture}>
+        Capture
+      </button>
+      <button className="cancel-button" onClick={handleCancel}>
+        Cancel
+      </button>
+    </div>
+  );
+};
+
+export default CameraScreen;
