@@ -5,8 +5,8 @@ import './LibraryPage.css';
 const LibraryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { imageUrl, isFromCamera } = location.state || {};
-
+  const { imageUrl, isFromCamera } = location.state || {}; // Receive state for view route
+  
   const loadStoredFiles = () => {
     const storedFiles = localStorage.getItem('libraryFiles');
     if (storedFiles) {
@@ -47,14 +47,16 @@ const LibraryPage = () => {
   const [modalShown, setModalShown] = useState(false);
 
   useEffect(() => {
+    // Handle camera file navigation
     if (isFromCamera && imageUrl && !modalShown) {
       setSelectedFile(imageUrl);
       setIsCameraFile(true);
-      setShowModal(true); // Show modal only if it's the first time
-      setModalShown(true); // Mark modal as shown
+      setShowModal(true);
+      setModalShown(true);
+    } else {
+      setFilteredFiles(files.filter(file => file.folder === currentFolder && file.name.toLowerCase().includes(searchQuery.toLowerCase())));
     }
-    setFilteredFiles(files.filter(file => file.folder === currentFolder));
-  }, [files, currentFolder, imageUrl, isFromCamera, modalShown]);
+  }, [files, currentFolder, imageUrl, isFromCamera, modalShown, searchQuery]);
 
   const handleSaveFolder = () => {
     if (newFolderName.trim() && !folders.some(folder => folder.name === newFolderName)) {
@@ -74,14 +76,10 @@ const LibraryPage = () => {
   };
 
   const handleFileClick = (file) => {
-    if (file.name === 'fakefile.png') {
-      navigate('/view-pdf', { state: { fileName: file.name, filePath: file.path } });
+    if (isCameraFile) {
+      navigate('/view', { state: { fileName: file.name, filePath: file.path, isFromCamera: true } });
     } else {
-      if (file.isFromCamera) {
-        navigate('/view', { state: { fileName: file.name, filePath: file.path } });
-      } else {
-        navigate('/view-uploaded', { state: { fileName: file.name, filePath: file.path } });
-      }
+      navigate('/view-uploaded', { state: { fileName: file.name, filePath: file.path, isFromCamera: false } });
     }
   };
 
@@ -133,7 +131,7 @@ const LibraryPage = () => {
       const newFile = { 
         name: finalFileName, 
         path: selectedFile, 
-        folder: 'Root', 
+        folder: currentFolder, 
         isFromCamera: fileSource === 'camera' 
       };
       const updatedFiles = [...files, newFile];
@@ -147,7 +145,7 @@ const LibraryPage = () => {
   };
 
   const handleCreateFolder = () => {
-    setShowModal('folder');  // Trigger folder creation modal
+    setShowModal('folder');
   };
 
   return (
@@ -202,7 +200,7 @@ const LibraryPage = () => {
       {showModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>{showModal === 'folder' ? 'Create New Folder' : (isCameraFile ? 'Name Your File' : 'Name Your File')}</h3>
+            <h3>{showModal === 'folder' ? 'Create New Folder' : 'Name Your File'}</h3>
             <input 
               type="text" 
               value={showModal === 'folder' ? newFolderName : newFileName} 
