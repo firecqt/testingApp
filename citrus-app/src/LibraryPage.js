@@ -6,7 +6,7 @@ const LibraryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { imageUrl, isFromCamera } = location.state || {}; // Receive state for view route
-  
+
   const loadStoredFiles = () => {
     const storedFiles = localStorage.getItem('libraryFiles');
     if (storedFiles) {
@@ -43,14 +43,12 @@ const LibraryPage = () => {
   const [moveModalVisible, setMoveModalVisible] = useState(false);
   const [currentFile, setCurrentFile] = useState(null);
   const [currentFolder, setCurrentFolder] = useState('Root');
-  const [isCameraFile, setIsCameraFile] = useState(false);
   const [modalShown, setModalShown] = useState(false);
 
   useEffect(() => {
     // Handle camera file navigation
     if (isFromCamera && imageUrl && !modalShown) {
       setSelectedFile(imageUrl);
-      setIsCameraFile(true);
       setShowModal(true);
       setModalShown(true);
     } else {
@@ -76,10 +74,14 @@ const LibraryPage = () => {
   };
 
   const handleFileClick = (file) => {
-    if (isCameraFile) {
-      navigate('/view', { state: { fileName: file.name, filePath: file.path, isFromCamera: true } });
+    if (file.name === 'fakefile.png') {
+      navigate('/view-pdf', { state: { fileName: file.name, filePath: file.path } });
     } else {
-      navigate('/view-uploaded', { state: { fileName: file.name, filePath: file.path, isFromCamera: false } });
+      if (file.isFromCamera) {  // Check isFromCamera for each file
+        navigate('/view', { state: { fileName: file.name, filePath: file.path, isFromCamera: true } });
+      } else {
+        navigate('/view-uploaded', { state: { fileName: file.name, filePath: file.path, isFromCamera: false } });
+      }
     }
   };
 
@@ -109,7 +111,9 @@ const LibraryPage = () => {
   };
 
   const handleMoveFile = (folder) => {
-    const updatedFiles = files.map(file => file === currentFile ? { ...file, folder: folder.name } : file);
+    const updatedFiles = files.map(file => 
+      file === currentFile ? { ...file, folder: folder.name } : file
+    );
     setFiles(updatedFiles);
     localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
     setMoveModalVisible(false);
@@ -128,11 +132,12 @@ const LibraryPage = () => {
   const handleSaveFile = () => {
     const finalFileName = newFileName || (fileSource === 'explorer' && selectedFile?.name);
     if (finalFileName && selectedFile) {
-      const newFile = { 
-        name: finalFileName, 
-        path: selectedFile, 
-        folder: currentFolder, 
-        isFromCamera: fileSource === 'camera' 
+      const newFile = {
+        name: finalFileName,
+        path: selectedFile,
+        folder: currentFolder,
+        //isFromCamera: fileSource === 'camera'  // Set isFromCamera based on file source
+        isFromCamera: true
       };
       const updatedFiles = [...files, newFile];
       setFiles(updatedFiles);
@@ -201,11 +206,11 @@ const LibraryPage = () => {
         <div className="modal">
           <div className="modal-content">
             <h3>{showModal === 'folder' ? 'Create New Folder' : 'Name Your File'}</h3>
-            <input 
-              type="text" 
-              value={showModal === 'folder' ? newFolderName : newFileName} 
-              onChange={(e) => showModal === 'folder' ? setNewFolderName(e.target.value) : setNewFileName(e.target.value)} 
-              placeholder={isCameraFile ? "Enter file name" : "Enter folder name"} 
+            <input
+              type="text"
+              value={showModal === 'folder' ? newFolderName : newFileName}
+              onChange={(e) => showModal === 'folder' ? setNewFolderName(e.target.value) : setNewFileName(e.target.value)}
+              placeholder={fileSource === 'camera' ? "Enter file name" : "Enter folder name"}
             />
             <button onClick={showModal === 'folder' ? handleSaveFolder : handleSaveFile}>Save</button>
             <button onClick={() => setShowModal(false)}>Cancel</button>
