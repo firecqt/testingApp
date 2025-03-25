@@ -131,14 +131,16 @@ const LibraryPage = () => {
 
   const handleSaveFile = () => {
     const finalFileName = newFileName || (fileSource === 'explorer' && selectedFile?.name);
+    
     if (finalFileName && selectedFile) {
       const newFile = {
         name: finalFileName,
         path: selectedFile,
         folder: currentFolder,
-        //isFromCamera: fileSource === 'camera'  // Set isFromCamera based on file source
-        isFromCamera: true
+        // Set isFromCamera based on file source
+        isFromCamera: fileSource === 'explorer' ? false : true
       };
+  
       const updatedFiles = [...files, newFile];
       setFiles(updatedFiles);
       localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
