@@ -37,14 +37,14 @@ const LibraryPage = () => {
   const [filteredFiles, setFilteredFiles] = useState(files);
   const [showModal, setShowModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [newFileName, setNewFileName] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileSource, setFileSource] = useState(null);
   const [moveModalVisible, setMoveModalVisible] = useState(false);
   const [currentFile, setCurrentFile] = useState(null);
   const [currentFolder, setCurrentFolder] = useState('Root');
   const [isCameraFile, setIsCameraFile] = useState(false);
-  const [newFileName, setNewFileName] = useState('');
-  const [modalShown, setModalShown] = useState(false);  // Track if the modal has been shown already
+  const [modalShown, setModalShown] = useState(false);
 
   useEffect(() => {
     if (isFromCamera && imageUrl && !modalShown) {
@@ -54,7 +54,7 @@ const LibraryPage = () => {
       setModalShown(true); // Mark modal as shown
     }
     setFilteredFiles(files.filter(file => file.folder === currentFolder));
-  }, [files, currentFolder, imageUrl, isFromCamera, modalShown]);  // Add modalShown as a dependency
+  }, [files, currentFolder, imageUrl, isFromCamera, modalShown]);
 
   const handleSaveFolder = () => {
     if (newFolderName.trim() && !folders.some(folder => folder.name === newFolderName)) {
@@ -100,15 +100,7 @@ const LibraryPage = () => {
       const fileURL = URL.createObjectURL(file);
       setSelectedFile(fileURL);
       setFileSource('explorer');
-      setShowModal(true);
-    }
-  };
-
-  const handleCameraUpload = (file) => {
-    if (file) {
-      setIsCameraFile(true);
-      setSelectedFile(file);
-      setFileSource('camera');
+      setNewFileName(file.name);
       setShowModal(true);
     }
   };
@@ -119,9 +111,7 @@ const LibraryPage = () => {
   };
 
   const handleMoveFile = (folder) => {
-    const updatedFiles = files.map(file => 
-      file === currentFile ? { ...file, folder: folder.name } : file
-    );
+    const updatedFiles = files.map(file => file === currentFile ? { ...file, folder: folder.name } : file);
     setFiles(updatedFiles);
     localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
     setMoveModalVisible(false);
@@ -133,57 +123,44 @@ const LibraryPage = () => {
     localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
   };
 
-  const handleCreateFolder = () => {
-    setShowModal('folder');
-  };
-
   const handleFolderClick = (folderName) => {
     setCurrentFolder(folderName);
   };
 
-  const handleFileNameChange = (e) => {
-    setNewFileName(e.target.value);
-  };
-
   const handleSaveFile = () => {
-    if (newFileName.trim()) {
+    const finalFileName = newFileName || (fileSource === 'explorer' && selectedFile?.name);
+    if (finalFileName && selectedFile) {
       const newFile = { 
-        name: newFileName, 
+        name: finalFileName, 
         path: selectedFile, 
-        folder: currentFolder, 
-        isFromCamera: isCameraFile 
+        folder: 'Root', 
+        isFromCamera: fileSource === 'camera' 
       };
       const updatedFiles = [...files, newFile];
       setFiles(updatedFiles);
       localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
-      setNewFileName('');
-      setIsCameraFile(false);
       setShowModal(false);
+      setSelectedFile(null);
+      setFileSource(null);
+      navigate('/library', { replace: true, state: {} });
     }
+  };
+
+  const handleCreateFolder = () => {
+    setShowModal('folder');  // Trigger folder creation modal
   };
 
   return (
     <div className="library-page">
       <button className="back-button" onClick={() => navigate("/MainScreen")}>Back</button>
-
-      {/* File Upload */}
-      <input 
-        type="file" 
-        onChange={handleFileUpload} 
-        style={{ display: 'none' }} 
-        id="fileInput" 
-      />
+      <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} id="fileInput" />
       <button className="upload-button" onClick={() => document.getElementById('fileInput').click()}>Upload File</button>
-
-      {/* Create Folder */}
       <button className="create-folder-button" onClick={handleCreateFolder}>+ Folder</button>
 
-      {/* Search Bar */}
       <div className="search-bar">
         <input type="text" placeholder="Search files..." value={searchQuery} onChange={handleSearchChange} />
       </div>
 
-      {/* Folder Display */}
       <div className="folder-display">
         {folders.length > 0 && folders.map((folder) => (
           <div key={folder.name} className="file-item folder-item" onClick={() => handleFolderClick(folder.name)}>
@@ -192,25 +169,14 @@ const LibraryPage = () => {
         ))}
       </div>
 
-      {/* File Display */}
       <div className="library-content">
         {filteredFiles.length > 0 ? (
           filteredFiles.map((file) => (
             <div key={file.name} className="file-item">
               <span role="button" onClick={() => handleFileClick(file)}>📄 {file.name}</span>
-
-              {/* Download and Delete Buttons */}
-              <button onClick={() => handleDownloadClick(file.path, file.name)} className="download-button">
-                Download
-              </button>
-              <button onClick={() => handleDeleteFile(file)} className="delete-button">
-                Delete
-              </button>
-
-              {/* Move Button */}
-              <button onClick={() => toggleDropdown(file)} className="move-button">
-                Move
-              </button>
+              <button onClick={() => handleDownloadClick(file.path, file.name)} className="download-button">Download</button>
+              <button onClick={() => handleDeleteFile(file)} className="delete-button">Delete</button>
+              <button onClick={() => toggleDropdown(file)} className="move-button">Move</button>
             </div>
           ))
         ) : (
@@ -232,28 +198,18 @@ const LibraryPage = () => {
         </div>
       )}
 
-      {/* Modal for New Folder Name */}
+      {/* File Naming Modal */}
       {showModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>{isCameraFile ? 'Name your Camera File' : 'Create New Folder'}</h3>
-            {isCameraFile && (
-              <input 
-                type="text" 
-                value={newFileName} 
-                onChange={handleFileNameChange} 
-                placeholder="Enter file name"
-              />
-            )}
-            {!isCameraFile && (
-              <input 
-                type="text" 
-                value={newFolderName} 
-                onChange={(e) => setNewFolderName(e.target.value)} 
-                placeholder="Enter folder name"
-              />
-            )}
-            <button onClick={isCameraFile ? handleSaveFile : handleSaveFolder}>Save</button>
+            <h3>{showModal === 'folder' ? 'Create New Folder' : (isCameraFile ? 'Name Your File' : 'Name Your File')}</h3>
+            <input 
+              type="text" 
+              value={showModal === 'folder' ? newFolderName : newFileName} 
+              onChange={(e) => showModal === 'folder' ? setNewFolderName(e.target.value) : setNewFileName(e.target.value)} 
+              placeholder={isCameraFile ? "Enter file name" : "Enter folder name"} 
+            />
+            <button onClick={showModal === 'folder' ? handleSaveFolder : handleSaveFile}>Save</button>
             <button onClick={() => setShowModal(false)}>Cancel</button>
           </div>
         </div>
