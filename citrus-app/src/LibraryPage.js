@@ -207,12 +207,12 @@ const LibraryPage = () => {
       {showModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>{showModal === 'folder' ? 'Create New Folder' : 'Name Your File'}</h3>
+            <h3>{showModal === 'folder' ? 'Create New Folder' : 'Name Your Folder'}</h3>
             <input
               type="text"
               value={showModal === 'folder' ? newFolderName : newFileName}
               onChange={(e) => showModal === 'folder' ? setNewFolderName(e.target.value) : setNewFileName(e.target.value)}
-              placeholder={fileSource === 'camera' ? "Enter file name" : "Enter folder name"}
+              placeholder={fileSource === 'camera' ? "Enter name here" : "Enter name here"}
             />
             <button onClick={showModal === 'folder' ? handleSaveFolder : handleSaveFile}>Save</button>
             <button onClick={() => setShowModal(false)}>Cancel</button>
