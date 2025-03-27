@@ -1,22 +1,97 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import fakefileImage from './images/fakefile.png'; // Always use this image
+import { useNavigate, useLocation } from 'react-router-dom';
+import fakefileImage from './images/fakefile.png'; // Only use as fallback
 import './FileViewPage.css';
 
 const PDFViewPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { fileName, filePath, scanResult } = location.state || {};
   const [drawing, setDrawing] = useState(false);
   const [mode, setMode] = useState("crayon"); 
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
   const [textInput, setTextInput] = useState("");
   const [isTextMode, setIsTextMode] = useState(false);
   const [textPosition, setTextPosition] = useState({ x: 50, y: 50 });
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Loading image...");
   const canvasRef = useRef(null);
   const textInputRef = useRef(null);
+  const imageRef = useRef(null);
+
+  // Try alternative URLs if the main one fails
+  const tryAlternativeUrls = (originalUrl) => {
+    // If the URL is already a files URL, try storage instead
+    if (originalUrl.includes('/files/')) {
+      return originalUrl.replace('/files/', '/storage/');
+    }
+    // If it's a storage URL, try files
+    if (originalUrl.includes('/storage/')) {
+      return originalUrl.replace('/storage/', '/files/');
+    }
+    
+    // If it's neither, construct both alternatives
+    const filename = originalUrl.split('/').pop();
+    return [
+      `http://localhost:5001/files/${filename}`,
+      `http://localhost:5001/storage/${filename}`,
+      `http://localhost:5001/get-file/processed/${filename}`,
+      `http://localhost:5001/get-file/root/${filename}`
+    ];
+  };
 
   useEffect(() => {
-    updateCanvasSize();
-  }, []);
+    if (filePath) {
+      // Start with the provided URL
+      setLoadingMessage(`Trying to load image from: ${filePath}`);
+      console.log(`Attempting to load image from: ${filePath}`);
+      
+      const loadImage = (url, alternativeUrls = []) => {
+        const img = new Image();
+        
+        img.onload = () => {
+          console.log(`Successfully loaded image from: ${url}`);
+          setImageLoaded(true);
+          setImageError(false);
+          setCanvasSize({ width: img.width, height: img.height });
+          // Store the successful URL
+          sessionStorage.setItem('lastSuccessfulImageUrl', url);
+        };
+        
+        img.onerror = () => {
+          console.error(`Failed to load image from: ${url}`);
+          
+          if (alternativeUrls.length > 0) {
+            // Try next alternative URL
+            const nextUrl = alternativeUrls[0];
+            const remainingUrls = alternativeUrls.slice(1);
+            setLoadingMessage(`Trying alternative URL: ${nextUrl}`);
+            loadImage(nextUrl, remainingUrls);
+          } else {
+            // All URLs failed
+            console.error("All URLs failed to load the image");
+            setImageError(true);
+            setLoadingMessage("Failed to load the image from any source");
+            // Fallback to default image
+            updateCanvasSize();
+          }
+        };
+        
+        img.src = url;
+      };
+      
+      // Generate alternative URLs
+      const alternatives = tryAlternativeUrls(filePath);
+      if (Array.isArray(alternatives)) {
+        loadImage(filePath, alternatives);
+      } else {
+        loadImage(filePath, [alternatives]);
+      }
+    } else {
+      updateCanvasSize();
+    }
+  }, [filePath]);
 
   useEffect(() => {
     if (isTextMode && textInputRef.current) {
@@ -84,7 +159,7 @@ const PDFViewPage = () => {
 
   const updateCanvasSize = () => {
     const img = new Image();
-    img.src = fakefileImage;  // Always use this image
+    img.src = fakefileImage;
     img.onload = () => {
       setCanvasSize({ width: img.width, height: img.height });
     };
@@ -92,7 +167,7 @@ const PDFViewPage = () => {
 
   return (
     <div className="file-view-page">
-      <button className="back-button" onClick={() => navigate('/Library')}>
+      <button className="back-button" onClick={() => navigate('/Library', { state: { scanResult } })}>
         Back
       </button>
       <div className="tools">
@@ -102,16 +177,57 @@ const PDFViewPage = () => {
         <button onClick={() => setMode("none")}>None</button>
       </div>
       <div className="file-content">
-        <h2></h2> {/* Always display this file name */}
-        <img
-          src={fakefileImage}
-          alt="Fake File"
-          style={{
-            width: '100%',
-            height: 'auto',
-            marginTop: '20px',
-          }}
-        />
+        <h2>{fileName || "Document"}</h2>
+        
+        {!imageLoaded && !imageError && (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '20px',
+            backgroundColor: '#f0f0f0',
+            borderRadius: '5px' 
+          }}>
+            <p>{loadingMessage}</p>
+          </div>
+        )}
+        
+        {/* Display actual image if loaded, otherwise fallback */}
+        {imageLoaded ? (
+          <img
+            ref={imageRef}
+            src={filePath}
+            alt={fileName || "Document"}
+            style={{
+              width: '100%',
+              height: 'auto',
+              marginTop: '20px',
+            }}
+          />
+        ) : imageError ? (
+          <div style={{ 
+            color: 'red', 
+            marginTop: '20px', 
+            textAlign: 'center',
+            padding: '20px',
+            backgroundColor: '#ffeeee',
+            borderRadius: '5px'
+          }}>
+            <p>Error loading your scanned image. The file may not exist or might have been moved.</p>
+            <p>Filename: {fileName}</p>
+            <p>Path: {filePath}</p>
+            <p>Try going back to the library and viewing the file again.</p>
+          </div>
+        ) : (
+          // Fallback to default image if needed
+          <img
+            src={fakefileImage}
+            alt="Document"
+            style={{
+              width: '100%',
+              height: 'auto',
+              marginTop: '20px',
+            }}
+          />
+        )}
 
         <canvas
           ref={canvasRef}
@@ -122,7 +238,7 @@ const PDFViewPage = () => {
             top: "0",
             left: "0",
             zIndex: 1,
-            cursor: "crosshair",
+            cursor: mode === "text" ? "text" : "crosshair",
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}

@@ -5,7 +5,7 @@ import './LibraryPage.css';
 const LibraryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { imageUrl, isFromCamera } = location.state || {};
+  const { imageUrl, isFromCamera, scanResult } = location.state || {};
 
   const loadStoredFiles = () => {
     const storedFiles = localStorage.getItem('libraryFiles');
@@ -45,16 +45,125 @@ const LibraryPage = () => {
   const [currentFolder, setCurrentFolder] = useState('Root');
   const [isCameraFile, setIsCameraFile] = useState(false);
   const [modalShown, setModalShown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Add or update files without duplicates
+  const addOrUpdateFiles = (newFiles) => {
+    const updatedFiles = [...files];
+    let hasChanges = false;
+
+    newFiles.forEach(newFile => {
+      // Check if file with this name already exists
+      const existingIndex = updatedFiles.findIndex(f => f.name === newFile.name);
+      
+      if (existingIndex === -1) {
+        // File doesn't exist, add it
+        updatedFiles.push(newFile);
+        hasChanges = true;
+      } else if (newFile.path !== updatedFiles[existingIndex].path) {
+        // File exists but path is different, update it
+        updatedFiles[existingIndex] = {
+          ...updatedFiles[existingIndex],
+          path: newFile.path,
+          isScanned: newFile.isScanned
+        };
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      setFiles(updatedFiles);
+      localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
+      return true;
+    }
+    return false;
+  };
+
+  // Add function to fetch storage files
+  const fetchStorageFiles = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5001/debug-files');
+      if (!response.ok) {
+        throw new Error('Failed to fetch storage files');
+      }
+      const data = await response.json();
+      
+      // Process storage files
+      const storageFiles = data.storage_files || [];
+      const processedFiles = data.processed_files || [];
+      
+      // Combine the lists (removing duplicates by filename)
+      const apiFiles = [...storageFiles, ...processedFiles];
+      const uniqueApiFiles = [];
+      const fileNames = new Set();
+      
+      apiFiles.forEach(file => {
+        if (!fileNames.has(file.filename)) {
+          fileNames.add(file.filename);
+          uniqueApiFiles.push(file);
+        }
+      });
+      
+      // Convert to your file format
+      const newApiFiles = uniqueApiFiles.map(file => ({
+        name: file.filename,
+        path: `http://localhost:5001/storage/${file.filename}`,
+        folder: 'Root',
+        isFromStorage: true,
+        isScanned: true
+      }));
+      
+      // Add files without creating duplicates
+      const filesAdded = addOrUpdateFiles(newApiFiles);
+      
+      if (filesAdded) {
+        console.log('Added/updated files from storage');
+      } else {
+        console.log('No new files from storage');
+      }
+    } catch (error) {
+      console.error('Error fetching storage files:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
+    // Handle files from the camera
     if (isFromCamera && imageUrl && !modalShown) {
       setSelectedFile(imageUrl);
       setIsCameraFile(true);
-      setShowModal(true); // Show modal only if it's the first time
-      setModalShown(true); // Mark modal as shown
+      setShowModal(true);
+      setModalShown(true);
     }
+    
+    // Filter files based on current folder
     setFilteredFiles(files.filter(file => file.folder === currentFolder));
   }, [files, currentFolder, imageUrl, isFromCamera, modalShown]);
+
+  // Separate useEffect for API calls and scan results
+  useEffect(() => {
+    // Fetch storage files when component mounts
+    fetchStorageFiles();
+    
+    // Check if we've just returned from scanning a file
+    if (scanResult && scanResult.success) {
+      // Add the scanned file to the library without creating duplicates
+      const newFile = {
+        name: scanResult.filename,
+        path: `http://localhost:5001${scanResult.storage_url || scanResult.direct_url || scanResult.pdf_url}`,
+        folder: 'Root',
+        isScanned: true
+      };
+      
+      addOrUpdateFiles([newFile]);
+      
+      // Clear the scan result from location state to prevent re-adding on refreshes
+      window.history.replaceState({}, document.title);
+    }
+  }, [scanResult]);
 
   const handleSaveFolder = () => {
     if (newFolderName.trim() && !folders.some(folder => folder.name === newFolderName)) {
@@ -79,6 +188,8 @@ const LibraryPage = () => {
     } else {
       if (file.isFromCamera) {
         navigate('/view', { state: { fileName: file.name, filePath: file.path } });
+      } else if (file.isScanned) {
+        navigate('/view-pdf', { state: { fileName: file.name, filePath: file.path } });
       } else {
         navigate('/view-uploaded', { state: { fileName: file.name, filePath: file.path } });
       }
@@ -136,9 +247,9 @@ const LibraryPage = () => {
         folder: 'Root', 
         isFromCamera: fileSource === 'camera' 
       };
-      const updatedFiles = [...files, newFile];
-      setFiles(updatedFiles);
-      localStorage.setItem('libraryFiles', JSON.stringify(updatedFiles));
+      
+      addOrUpdateFiles([newFile]);
+      
       setShowModal(false);
       setSelectedFile(null);
       setFileSource(null);
@@ -150,39 +261,147 @@ const LibraryPage = () => {
     setShowModal('folder');  // Trigger folder creation modal
   };
 
+  const toggleActionMenu = (fileId, e) => {
+    e.stopPropagation(); // Prevent triggering file click
+    if (activeDropdown === fileId) {
+      setActiveDropdown(null);
+    } else {
+      setActiveDropdown(fileId);
+    }
+  };
+
+  const handleRefreshFiles = () => {
+    fetchStorageFiles();
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveDropdown(null);
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="library-page">
-      <button className="back-button" onClick={() => navigate("/MainScreen")}>Back</button>
-      <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} id="fileInput" />
-      <button className="upload-button" onClick={() => document.getElementById('fileInput').click()}>Upload File</button>
-      <button className="create-folder-button" onClick={handleCreateFolder}>+ Folder</button>
+      <div className="library-toolbar">
+        <div className="toolbar-left">
+          <button className="back-button" onClick={() => navigate("/MainScreen")}>
+            Back
+          </button>
+        </div>
+        <div className="toolbar-right">
+          <input 
+            type="file" 
+            onChange={handleFileUpload} 
+            style={{ display: 'none' }} 
+            id="fileInput" 
+          />
+          <button 
+            className="upload-button" 
+            onClick={() => document.getElementById('fileInput').click()}
+          >
+            Upload File
+          </button>
+          <button 
+            className="create-folder-button" 
+            onClick={handleCreateFolder}
+          >
+            + Folder
+          </button>
+          <button
+            className="refresh-button"
+            onClick={handleRefreshFiles}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Loading...' : '↻'}
+          </button>
+        </div>
+      </div>
 
       <div className="search-bar">
-        <input type="text" placeholder="Search files..." value={searchQuery} onChange={handleSearchChange} />
+        <input 
+          type="text" 
+          placeholder="Search files..." 
+          value={searchQuery} 
+          onChange={handleSearchChange} 
+        />
       </div>
 
-      <div className="folder-display">
-        {folders.length > 0 && folders.map((folder) => (
-          <div key={folder.name} className="file-item folder-item" onClick={() => handleFolderClick(folder.name)}>
-            <span>📁 {folder.name}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="library-content">
-        {filteredFiles.length > 0 ? (
-          filteredFiles.map((file) => (
-            <div key={file.name} className="file-item">
-              <span role="button" onClick={() => handleFileClick(file)}>📄 {file.name}</span>
-              <button onClick={() => handleDownloadClick(file.path, file.name)} className="download-button">Download</button>
-              <button onClick={() => handleDeleteFile(file)} className="delete-button">Delete</button>
-              <button onClick={() => toggleDropdown(file)} className="move-button">Move</button>
+      {/* Folders Grid */}
+      {folders.length > 0 && (
+        <div className="grid-container">
+          {folders.map((folder) => (
+            <div 
+              key={folder.name} 
+              className="grid-item" 
+              onClick={() => handleFolderClick(folder.name)}
+            >
+              <div className="grid-item-content">
+                <div className="grid-item-icon">📁</div>
+                <div className="grid-item-name">{folder.name}</div>
+              </div>
             </div>
-          ))
-        ) : (
-          currentFolder !== 'Root' && <p className="no-files-message">No files found</p>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Files Grid */}
+      {filteredFiles.length > 0 ? (
+        <div className="grid-container">
+          {filteredFiles.map((file) => (
+            <div 
+              key={file.name} 
+              className="grid-item"
+              onClick={() => handleFileClick(file)}
+            >
+              <div className="grid-item-content">
+                <div className="grid-item-icon">{file.isScanned ? '📄' : '📄'}</div>
+                <div className="grid-item-name">{file.name}</div>
+                <div className="kebab-menu" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    className="kebab-button" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleActionMenu(file.name, e);
+                    }}
+                  >
+                    …
+                  </button>
+                  
+                  {activeDropdown === file.name && (
+                    <div className="dropdown-menu">
+                      <button onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadClick(file.path, file.name);
+                      }}>
+                        Download
+                      </button>
+                      <button onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown(file);
+                      }}>
+                        Move
+                      </button>
+                      <button onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFile(file);
+                      }}>
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        currentFolder !== 'Root' && <p className="no-files-message">No files found</p>
+      )}
 
       {/* Move File Modal */}
       {moveModalVisible && (

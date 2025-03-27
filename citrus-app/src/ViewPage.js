@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './ViewPage.css';
+import { processImage } from './services/api';
 
 const ViewPage = () => {
   const location = useLocation();
@@ -78,6 +79,56 @@ const ViewPage = () => {
     setIsTextMode(false); // Exit text mode
   };
 
+  const handleProcessImage = async () => {
+    try {
+      // Show loading state
+      // setIsLoading(true);
+      
+      // Convert the image path to a file object if needed
+      const imageFile = await fetchImageAsFile(filePath, fileName);
+      
+      // Process the image with the API
+      const result = await processImage(imageFile);
+      
+      if (result.success) {
+        // Navigate to PDF viewer with the new PDF
+        navigate('/view-pdf', { 
+          state: { 
+            fileName: result.filename, 
+            filePath: `http://localhost:5000${result.pdf_url}` 
+          } 
+        });
+      }
+    } catch (error) {
+      console.error('Error processing image:', error);
+      // Show error message
+      // setErrorMessage('Failed to process image');
+    } finally {
+      // Hide loading state
+      // setIsLoading(false);
+    }
+  };
+  
+  // Helper function to fetch image and convert to File
+  const fetchImageAsFile = async (imagePath, fileName) => {
+    // If it's a data URL, convert it to a File
+    if (imagePath.startsWith('data:')) {
+      const res = await fetch(imagePath);
+      const blob = await res.blob();
+      return new File([blob], fileName, { type: blob.type });
+    }
+    
+    // If it's a URL, fetch it first
+    try {
+      const res = await fetch(imagePath);
+      const blob = await res.blob();
+      return new File([blob], fileName, { type: blob.type });
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      throw new Error('Could not load the image');
+    }
+  };
+
   if (!filePath) {
     return <div>No file selected.</div>;
   }
@@ -145,6 +196,22 @@ const ViewPage = () => {
           <button onClick={() => setMode("highlighter")}>Highlighter</button>
           <button onClick={() => setMode("none")}>None</button>
         </div>
+      )}
+
+      {/* Add a process button if it's an image */}
+      {!filePath.endsWith('.pdf') && (
+        <button 
+          className="process-button" 
+          onClick={handleProcessImage}
+          style={{
+            position: 'absolute',
+            bottom: '20px',
+            right: '20px',
+            zIndex: 10
+          }}
+        >
+          Process to PDF
+        </button>
       )}
     </div>
   );
