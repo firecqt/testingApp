@@ -86,9 +86,9 @@
   background-color: white;
   padding: 20px;
   border-radius: 8px;
-  width: 300px; /* Set a width that fits your design */
+  width: 300px; 
   text-align: center;
-  font-family: 'Georgia', serif; /* Apply the Georgia font */
+  font-family: 'Georgia', serif; 
 }
 
 .modal h3 {
@@ -267,7 +267,6 @@
 
 .dropdown-menu {
   position: absolute;
-  /* Changed from right: 0 to left: 50% and transform to center it */
   left: 50%;
   transform: translateX(-50%);
   top: 100%;
@@ -279,7 +278,6 @@
   overflow: hidden;
 }
 
-/* Add media query for small screens to ensure dropdown doesn't go off-screen */
 @media (max-width: 768px) {
   .grid-item:first-child .dropdown-menu,
   .grid-item:nth-child(3n+1) .dropdown-menu {

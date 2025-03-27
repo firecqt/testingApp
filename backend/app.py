@@ -7,7 +7,7 @@ import uvicorn
 import os
 import uuid
 import shutil
-from function import ScanDocument  # Correct import name
+from function import ScanDocument  
 from pathlib import Path
 import logging
 
@@ -34,10 +34,9 @@ print(f"Processed: {PROCESSED_DIR}")
 
 app = FastAPI(title="Document Scanner API")
 
-# Configure CORS to allow requests from your React app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Your React dev server
+    allow_origins=["http://localhost:3000"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -390,7 +389,6 @@ async def file_info(filename: str):
         "access_urls": [loc["url"] for loc in results if loc["exists"] and loc["url"]]
     }
 
-# Add this to your app startup to confirm directory mounting
 @app.on_event("startup")
 async def startup_event():
     logger.info(f"Starting server with the following configurations:")
