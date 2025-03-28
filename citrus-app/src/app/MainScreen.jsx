@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; 
-import uploadImage from "./images/upload.jpeg"; 
-import libraryImage from "./images/library.jpeg"; 
+import uploadImage from "../images/upload.jpeg"; 
+import libraryImage from "../images/library.jpeg"; 
 import "./MainScreen.css"; 
 
 const MainScreen = () => {

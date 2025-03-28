@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import fakefileImage from './images/fakefile.png'; // Always use this image
+import fakefileImage from '../images/fakefile.png'; // Always use this image
 import './FileViewPage.css';
 
 const PDFViewPage = () => {
@@ -54,10 +54,8 @@ const PDFViewPage = () => {
     if (textInput.trim() !== "") {
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
-
-      context.globalAlpha = 1; // Ensure full opacity
       context.font = "20px Arial";
-      context.fillStyle = "black"; // Set fill style to black
+      context.fillStyle = "black";
       context.fillText(textInput, textPosition.x, textPosition.y);
       setTextInput("");
       setIsTextMode(false);
@@ -104,6 +102,7 @@ const PDFViewPage = () => {
         <button onClick={() => setMode("none")}>None</button>
       </div>
       <div className="file-content">
+        <h2></h2> {/* Always display this file name */}
         <img
           src={fakefileImage}
           alt="Fake File"
@@ -138,6 +137,7 @@ const PDFViewPage = () => {
               top: textPosition.y + 10,
               left: textPosition.x,
               zIndex: 2,
+              color: "black"
             }}
           >
             <input
@@ -150,7 +150,7 @@ const PDFViewPage = () => {
                 fontSize: "16px",
                 padding: "5px",
                 border: "1px solid black",
-                color: "black",  // Ensures the input text is black
+                color: "black", 
               }}
             />
             <button onClick={handleTextSubmit}>Add Text</button>

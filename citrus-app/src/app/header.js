@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
-import menuImage from './images/menu.jpeg'; 
-import profileImage from './images/profile.jpeg';
+import menuImage from '../images/menu.jpeg'; 
+import profileImage from '../images/profile.jpeg';
 
 const Header = () => {
   return (
